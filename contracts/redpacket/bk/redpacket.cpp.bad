@@ -1,0 +1,182 @@
+#include <eosiolib/eosio.hpp>
+#include <eosiolib/time.hpp>
+#include <eosiolib/asset.hpp>
+#include <eosiolib/contract.hpp>
+#include <eosiolib/crypto.h>
+#include <utility>
+#include <vector>
+#include <string>
+#include <map>
+#include <iostream>
+
+using eosio::key256;
+using eosio::indexed_by;
+using eosio::const_mem_fun;
+using eosio::asset;
+using eosio::permission_level;
+using eosio::action;
+using eosio::print;
+using eosio::name;
+
+
+using namespace eosio;
+using std::string;
+class redpacket: public eosio::contract {
+using contract::contract;
+  public:
+
+      redpacket(account_name s)
+	      :eosio::contract(s), offers(_self,_self),takes(_self,_self){
+      }
+
+      [[eosio::action]]
+      void hi( account_name user , string teset) {
+         print( "Hello, ", name{user} );
+      }
+
+      [[eosio::action]]
+      void make( string _key, account_name maker, asset pool, uint32_t people_num, uint32_t expiration_time = 12*3600 ) {
+      	eosio_assert( pool.is_valid(), "invalid currency" );
+	eosio_assert( pool.amount > 0, "must positive quantity" );
+	eosio_assert(!is_exist(maker,_key), "no dup entry!" );
+	//auto makes_itr = makes.emplace(_self, [&](auto& ele){
+	maketype make_ele;
+	  // ele.id = makes.available_primary_key();
+	make_ele.maker = maker;
+	make_ele.key = _key;
+	//} );
+	uint64_t offers_id;
+	auto ofitr = offers.emplace(_self, [&](auto& ele){
+	  ele.id = offers.available_primary_key();
+	  offers_id = ele.id;
+	  ele.owner = make_ele;
+	  ele.pool = pool;
+	  ele.expiration_time = eosio::time_point_sec(now() + expiration_time);
+	  ele.left = asset(0,pool.symbol);
+	  ele.total_p_num = people_num;
+	  ele.left_p_num = 0;
+	} );
+	makes_key_map[std::to_string(maker) + "_" + _key ] = offers_id;
+
+	action(
+	  permission_level{ maker, N(active) },
+	  N(eosio.token), N(transfer),
+	  std::make_tuple(maker, _self, pool, string("send a redpacket"))
+	).send();
+	print("Redpacket from ", name{maker}, " with key ", _key, " to ", people_num, " people with total " , pool);
+      }
+
+      [[eosio::action]]
+      void take( account_name taker, account_name maker, string id) {
+	eosio_assert( !is_taken(maker, taker, id), "id conflict!");
+	eosio_assert( is_exist(maker,id), "no key exist!" );
+	auto offers_id = makes_key_map[std::to_string(maker) + "_" + id];
+	// auto idx = offers.template get_index<N(owner)>();
+	auto itr = offers.find(offers_id);
+	
+	if( has_expired(itr->expiration_time )|| itr->left_p_num == 0 || itr->left.amount <= 0){
+	    withdraw(maker, id);
+	    
+	    return;
+	}
+	eosio_assert( !has_expired(itr->expiration_time),"red expired!");
+	eosio_assert(itr->left_p_num > 1, "enough people");
+	eosio_assert(itr->left.amount > 0, "run out of money");
+	asset _ast;
+	offers.modify(itr, 0, [&](auto& ele){
+	    ele.left_p_num = itr->left_p_num - 1;
+	    auto tmp_ast  = itr->left;
+	    _ast = tmp_ast/ itr->left_p_num;
+	    ele.left = itr->left - _ast;
+	});
+	uint64_t takes_id;
+	takes.emplace(_self, [&](auto& ele){
+	    ele.id =  takes.available_primary_key();
+	    takes_id = ele.id;
+	    ele.red =  _ast;		
+	    ele.owner = itr->owner;		
+	    ele.taker = taker;		
+	    ele.take_time = eosio::time_point_sec(now());		
+	});
+	takes_key_map[id + "_" + std::to_string(maker) + "_" + std::to_string(taker) ] = takes_id;
+	action(
+	  permission_level{ _self, N(active) },
+	  N(eosio.token), N(transfer),
+	  std::make_tuple(_self, taker, _ast, string("take a redpacket"))
+	).send();
+	print("RedTaker ", name{taker}, " take packet ",_ast ," from ", name{maker}," with key ", id);
+	print("Redpacket id(", itr->id, ") maker(", name{maker},") with key(", id, ") has left(", itr->left, ")"   );
+
+      }
+
+  private:
+  	struct  [[eosio::table]] maketype{
+	    account_name maker;
+	    string key;
+	    EOSLIB_SERIALIZE(maketype , (maker)(key) )
+	};
+	struct  [[eosio::table("offertable")]] offer {
+	    uint64_t id;
+	    maketype owner;
+	    asset pool;
+	    eosio::time_point_sec expiration_time;
+	    asset left;
+	    uint32_t total_p_num;
+	    uint32_t left_p_num;
+	    uint64_t primary_key()const { return id;}
+	    EOSLIB_SERIALIZE( offer, (id)(owner)(pool)(expiration_time)(left)(total_p_num)(left_p_num) )
+	};
+	struct [[eosio::table("taketable")]] taketype{
+	    uint64_t id;
+	    account_name taker;
+	    asset red;
+	    maketype owner;
+	    eosio::time_point_sec take_time;
+
+	    uint64_t primary_key()const { return id;}
+	    EOSLIB_SERIALIZE(taketype , (id)(taker)(red)(owner)(take_time) )
+	};
+
+	typedef eosio::multi_index< N(offerindex), redpacket::offer 
+	> offer_index;
+	typedef eosio::multi_index< N(takesindex), redpacket::taketype
+	> takes_index;
+	// makes_index makes;
+	offer_index offers;
+	takes_index takes;
+	std::map<string, uint64_t> makes_key_map;
+	std::map<string, uint64_t> takes_key_map;
+	bool is_exist(account_name owner, string pub_key){
+		auto _id = std::to_string(owner) + "_" + pub_key;
+		return makes_key_map.count(_id) > 0;
+	}
+	bool is_taken(account_name owner, account_name taker, string pub_id){
+		auto _id = pub_id + "_" + std::to_string(owner) + "_" + std::to_string(taker);
+		return takes_key_map.count(_id) > 0;
+	}
+	bool has_expired( eosio::time_point_sec t ){
+		return eosio::time_point_sec(now()) < t;
+	}
+	void withdraw(const account_name& maker,const string& id){
+		auto k = id + "_" + std::to_string(maker);
+		auto offers_id = makes_key_map[k];
+
+		auto itr = offers.find(offers_id);
+		eosio_assert(itr->left.amount >= 0, "left must >= 0");
+		action(
+		  permission_level{ _self , N(active) },
+		  N(eosio.token), N(transfer),
+		  std::make_tuple(_self, maker, itr->left , string("back to redpacket owner"))
+		).send();
+
+		offers.erase(itr);
+		makes_key_map.erase(k);
+		print("Withdraw redpacket from ", name{maker}, " with key ", id, " with left " , itr->left);
+	}
+
+
+};
+
+
+// EOSIO_ABI( redpacket, (make)(take)(view) )
+EOSIO_ABI( redpacket, (hi)(make)(take) )

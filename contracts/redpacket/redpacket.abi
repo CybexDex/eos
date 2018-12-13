@@ -1,0 +1,197 @@
+{
+    "version": "eosio::abi/1.0",
+    "structs": [
+        {
+            "name": "clear",
+            "base": "",
+            "fields": [
+                {
+                    "name": "user",
+                    "type": "name"
+                }
+            ]
+        },
+        {
+            "name": "hi",
+            "base": "",
+            "fields": [
+                {
+                    "name": "user",
+                    "type": "name"
+                },
+                {
+                    "name": "memo",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "name": "make",
+            "base": "",
+            "fields": [
+                {
+                    "name": "key",
+                    "type": "uint64"
+                },
+                {
+                    "name": "maker",
+                    "type": "name"
+                },
+                {
+                    "name": "pool",
+                    "type": "asset"
+                },
+                {
+                    "name": "people_num",
+                    "type": "uint32"
+                },
+                {
+                    "name": "expiration_time",
+                    "type": "uint32"
+                }
+            ]
+        },
+        {
+            "name": "offer",
+            "base": "",
+            "fields": [
+                {
+                    "name": "id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "maker",
+                    "type": "name"
+                },
+                {
+                    "name": "key",
+                    "type": "uint64"
+                },
+                {
+                    "name": "pool",
+                    "type": "asset"
+                },
+                {
+                    "name": "expiration_time",
+                    "type": "time_point_sec"
+                },
+                {
+                    "name": "left",
+                    "type": "asset"
+                },
+                {
+                    "name": "total_p_num",
+                    "type": "uint32"
+                },
+                {
+                    "name": "left_p_num",
+                    "type": "uint32"
+                }
+            ]
+        },
+        {
+            "name": "take",
+            "base": "",
+            "fields": [
+                {
+                    "name": "taker",
+                    "type": "name"
+                },
+                {
+                    "name": "maker",
+                    "type": "name"
+                },
+                {
+                    "name": "id",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
+            "name": "taketype",
+            "base": "",
+            "fields": [
+                {
+                    "name": "id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "taker",
+                    "type": "name"
+                },
+                {
+                    "name": "red",
+                    "type": "asset"
+                },
+                {
+                    "name": "owner_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "take_time",
+                    "type": "time_point_sec"
+                }
+            ]
+        },
+        {
+            "name": "view",
+            "base": "",
+            "fields": [
+                {
+                    "name": "maker",
+                    "type": "name"
+                },
+                {
+                    "name": "id",
+                    "type": "uint64"
+                }
+            ]
+        }
+    ],
+    "types": [],
+    "actions": [
+        {
+            "name": "clear",
+            "type": "clear",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "hi",
+            "type": "hi",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "make",
+            "type": "make",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "take",
+            "type": "take",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "view",
+            "type": "view",
+            "ricardian_contract": ""
+        }
+    ],
+    "tables": [
+        {
+            "name": "offer",
+            "type": "offer",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
+            "name": "taketype",
+            "type": "taketype",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        }
+    ],
+    "ricardian_clauses": [],
+    "abi_extensions": []
+}

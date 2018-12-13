@@ -1,0 +1,96 @@
+#include <eosiolib/eosio.hpp>
+#include <eosiolib/time.hpp>
+#include <eosiolib/asset.hpp>
+#include <eosiolib/contract.hpp>
+#include <eosiolib/crypto.h>
+#include <utility>
+#include <vector>
+#include <string>
+#include <map>
+#include <iostream>
+
+using eosio::key256;
+using eosio::indexed_by;
+using eosio::const_mem_fun;
+using eosio::asset;
+using eosio::permission_level;
+using eosio::action;
+using eosio::print;
+using eosio::name;
+
+
+using namespace eosio;
+using std::string;
+class redpacket: public eosio::contract {
+using contract::contract;
+  public:
+
+      redpacket(account_name s)
+	      :eosio::contract(s), offers(_self,_self),takes(_self,_self){
+      }
+
+      [[eosio::action]]
+      void hi( account_name user , string teset) {
+         print( "Hello, ", name{user} );
+      }
+
+      [[eosio::action]]
+      void make( string _key, account_name maker, asset pool, uint32_t people_num, uint32_t expiration_time = 12*3600 ) {
+      }
+
+      [[eosio::action]]
+      void take( account_name taker, account_name maker, string id) {
+      }
+
+  private:
+  	struct  [[eosio::table]] maketype{
+	    account_name maker;
+	    string key;
+	    EOSLIB_SERIALIZE(maketype , (maker)(key) )
+	};
+	struct  [[eosio::table("offertable")]] offer {
+	    uint64_t id;
+	    maketype owner;
+	    asset pool;
+	    eosio::time_point_sec expiration_time;
+	    asset left;
+	    uint32_t total_p_num;
+	    uint32_t left_p_num;
+	    uint64_t primary_key()const { return id;}
+	    EOSLIB_SERIALIZE( offer, (id)(owner)(pool)(expiration_time)(left)(total_p_num)(left_p_num) )
+	};
+	struct [[eosio::table("taketable")]] taketype{
+	    uint64_t id;
+	    account_name taker;
+	    asset red;
+	    maketype owner;
+	    eosio::time_point_sec take_time;
+
+	    uint64_t primary_key()const { return id;}
+	    EOSLIB_SERIALIZE(taketype , (id)(taker)(red)(owner)(take_time) )
+	};
+
+	typedef eosio::multi_index< N(offerindex), redpacket::offer 
+	> offer_index;
+	typedef eosio::multi_index< N(takesindex), redpacket::taketype
+	> takes_index;
+	// makes_index makes;
+	offer_index offers;
+	takes_index takes;
+	std::map<string, uint64_t> makes_key_map;
+	std::map<string, uint64_t> takes_key_map;
+	bool is_exist(account_name owner, string pub_key){
+	}
+	bool is_taken(account_name owner, account_name taker, string pub_id){
+	}
+	bool has_expired( eosio::time_point_sec t ){
+	}
+	void withdraw(const account_name& maker,const string& id){
+	}
+
+
+};
+
+
+// EOSIO_ABI( redpacket, (make)(take)(view) )
+EOSIO_ABI( redpacket, (hi)(make)(take) )

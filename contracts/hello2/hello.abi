@@ -1,0 +1,53 @@
+{
+    "version": "eosio::abi/1.0",
+    "structs": [
+       {
+            "name": "hi",
+            "base": "",
+            "fields": [
+                {
+                    "name": "user",
+                    "type": "name"
+                },
+                {
+                    "name": "s1",
+                    "type": "string"
+                },
+                {
+                    "name": "as1",
+                    "type": "asset"
+                },
+                {
+                    "name": "aaa",
+                    "type": "uint32"
+                }
+            ]
+        },
+        {
+            "name": "test",
+            "base": "",
+            "fields": [
+                {
+                    "name": "s1",
+                    "type": "name"
+                }
+            ]
+        }
+    ],
+    "types": [
+        {
+            "new_type_name": "account_name",
+            "type": "name"
+        }
+   ],
+    "actions": [
+        {
+            "name": "hi",
+            "type": "hi",
+            "ricardian_contract": ""
+        }
+    ],
+    "tables": [],
+    "ricardian_clauses": [],
+    "abi_extensions": []
+}

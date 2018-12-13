@@ -1,0 +1,12 @@
+---- using chain::signed_block; Matches (1 in 1 files) ----
+eosio in mongo_db_plugin.cpp (plugins\mongo_db_plugin) : using chain::signed_block;
+---- using chain::signed_block; Search Errors Encountered (8) ----
+The following 8 files could not be processed:
+D:\ubuntu\eos\libraries\chain\include\eosio\chain\webassembly\binaryen.hpp : File could not be opened.
+D:\ubuntu\eos\contracts\dice\dice.cpp : File could not be opened.
+D:\ubuntu\eos\unittests\dice_tests.cpp : File could not be opened.
+D:\ubuntu\eos\contracts\exchange\exchange_accounts.hpp : File could not be opened.
+D:\ubuntu\eos\contracts\exchange\exchange_state.hpp : File could not be opened.
+D:\ubuntu\eos\unittests\exchange_tests.cpp : File could not be opened.
+D:\ubuntu\eos\contracts\exchange\test_exchange.cpp : File could not be opened.
+D:\ubuntu\eos\libraries\fc\src\network\http\websocket.cpp : File could not be opened.
